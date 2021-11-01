@@ -13,6 +13,9 @@ people = {}
 movies = {}
 
 
+queue = QueueFrontier()
+
+
 def load_data(directory):
     """
     Load data from CSV files into memory.
@@ -67,7 +70,7 @@ def main():
     if source is None:
         sys.exit("Person not found.")
     # target = person_id_for_name(input("Name: "))
-    target = person_id_for_name("Tom Cruise")
+    target = person_id_for_name("Cary Elwes")
     if target is None:
         sys.exit("Person not found.")
 
@@ -94,43 +97,46 @@ def shortest_path(source: int, target: int):
     """
 
     movie_id_for_actor_id = neighbors_for_person(source)
-    source_node = Node(state=(None, source), parent=(None, None))
-    nodes_list = create_nodes(parent=source_node, movie_id_for_actor_id=movie_id_for_actor_id)
-    match_target_node = check_for_target(nodes_list, target)
+    source_node = Node(state= source, parent= None, action=None)
+    create_nodes(parent=source_node, movie_id_for_actor_id=movie_id_for_actor_id)
+    match_target_node = check_for_target(queue.frontier, target)
     if match_target_node:
         result_path = construct_result_path(match_target_node, source)
         if result_path:
             return result_path
-        else:
-            return None
+    else:
+        print("queue.frontier: ", queue.frontier)
+        for node in queue.frontier:
+            print("NODE: ", node.state)
+            movie_id_for_actor_id2 = neighbors_for_person(node.state)
+            create_nodes(node, movie_id_for_actor_id2)
+        print("NODE LIST 2: ", len(queue.frontier))
+
+            
+def create_nodes(parent: Node, movie_id_for_actor_id: set) -> None:
+    for movie in movie_id_for_actor_id:
+        movie_id = movie[0]
+        actor_id = movie[1]
+        node = Node(state=actor_id, parent=parent, action=movie_id)
+        queue.add(node)
+
+def check_for_target(nodes_list: list, target: int):
+    for node in nodes_list:
+        if node.state == target:
+            print(f'NODE: {node.state}')
+            return node
+    return False
 
 def construct_result_path(match_target_node: Node, source: int) -> list:
     result_path = []
     while 1:
         print(f'RESULT PATH: {result_path}')
-        if match_target_node.state[1] != source:
-            result_path.append(match_target_node.state)
+        if match_target_node.state != source:
+            result_path.append((match_target_node. action, match_target_node.state))
             match_target_node = match_target_node.parent
         else:
             break
     return result_path
-
-def create_nodes(parent: Node, movie_id_for_actor_id: set) -> list:
-    nodes_list = []
-    for movie in movie_id_for_actor_id:
-        node = Node(movie, parent)
-        nodes_list.append(node)
-    return nodes_list
-
-def check_for_target(nodes_list: list, target: int):
-    for node in nodes_list:
-        if node.state[1] == target:
-            print(f'NODE: {node.state}')
-            return node
-    return False
-
-
-
 
 def person_id_for_name(name):
     """
