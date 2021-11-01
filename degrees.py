@@ -67,7 +67,7 @@ def main():
     if source is None:
         sys.exit("Person not found.")
     # target = person_id_for_name(input("Name: "))
-    target = person_id_for_name("Emma Watson")
+    target = person_id_for_name("Tom Cruise")
     if target is None:
         sys.exit("Person not found.")
 
@@ -85,7 +85,7 @@ def main():
             movie = movies[path[i + 1][0]]["title"]
             print(f"{i + 1}: {person1} and {person2} starred in {movie}")
 
-def shortest_path(source, target):
+def shortest_path(source: int, target: int):
     """
     Returns the shortest list of (movie_id, person_id) pairs
     that connect the source to the target.
@@ -94,36 +94,35 @@ def shortest_path(source, target):
     """
 
     movie_id_for_actor_id = neighbors_for_person(source)
-    source_node = Node(state=(None, source), parent=("End", "End1"))
+    source_node = Node(state=(None, source), parent=(None, None))
     nodes_list = create_nodes(parent=source_node, movie_id_for_actor_id=movie_id_for_actor_id)
     match_target_node = check_for_target(nodes_list, target)
-    if match_target_node == False:
-        shortest_path(source=movie_id_for_actor_id[0][1], target=target)
+    if match_target_node:
+        result_path = construct_result_path(match_target_node, source)
+        if result_path:
+            return result_path
+        else:
+            return None
+
+def construct_result_path(match_target_node: Node, source: int) -> list:
     result_path = []
     while 1:
         print(f'RESULT PATH: {result_path}')
-        try:
-            if match_target_node.parent and match_target_node.state[1] != source:
-                result_path.append(match_target_node.state)
-                match_target_node = match_target_node.parent
-            else:
-                break
-        except Exception as e:
+        if match_target_node.state[1] != source:
+            result_path.append(match_target_node.state)
+            match_target_node = match_target_node.parent
+        else:
             break
-    if result_path == []:
-        return None
     return result_path
 
-def create_nodes(parent, movie_id_for_actor_id):
+def create_nodes(parent: Node, movie_id_for_actor_id: set) -> list:
     nodes_list = []
     for movie in movie_id_for_actor_id:
-        movie_id = movie[0]
-        actor_id = movie[1]
-        node = Node((movie_id, actor_id), parent)
+        node = Node(movie, parent)
         nodes_list.append(node)
     return nodes_list
 
-def check_for_target(nodes_list, target):
+def check_for_target(nodes_list: list, target: int):
     for node in nodes_list:
         if node.state[1] == target:
             print(f'NODE: {node.state}')
