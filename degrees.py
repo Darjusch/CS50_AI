@@ -14,7 +14,7 @@ movies = {}
 
 
 queue = QueueFrontier()
-
+already_checked_nodes = set()
 
 def load_data(directory):
     """
@@ -66,7 +66,7 @@ def main():
     print("Data loaded.")
 
     # source = person_id_for_name(input("Name: "))
-    source = person_id_for_name("Kevin Bacon")
+    source = person_id_for_name("Tom Cruise")
     if source is None:
         sys.exit("Person not found.")
     # target = person_id_for_name(input("Name: "))
@@ -98,33 +98,47 @@ def shortest_path(source: int, target: int):
 
     movie_id_for_actor_id = neighbors_for_person(source)
     source_node = Node(state= source, parent= None, action=None)
-    create_nodes(parent=source_node, movie_id_for_actor_id=movie_id_for_actor_id)
-    match_target_node = check_for_target(queue.frontier, target)
-    if match_target_node:
-        result_path = construct_result_path(match_target_node, source)
-        if result_path:
-            return result_path
+    create_nodes_and_add_to_que(parent=source_node, movie_id_for_actor_id=movie_id_for_actor_id)
+    match_target_node = False
+    while match_target_node == False:
+        match_target_node = check_for_target_and_delete_old_nodes(queue.frontier, target)
+        if queue.empty():
+            print("Empty queue")
+            return None
+    result_path = construct_result_path(match_target_node, source)
+    if result_path != []:
+        return result_path
     else:
-        print("queue.frontier: ", queue.frontier)
-        for node in queue.frontier:
-            print("NODE: ", node.state)
-            movie_id_for_actor_id2 = neighbors_for_person(node.state)
-            create_nodes(node, movie_id_for_actor_id2)
-        print("NODE LIST 2: ", len(queue.frontier))
+        print("SOMETHING SOMETHING")
+        return None
 
             
-def create_nodes(parent: Node, movie_id_for_actor_id: set) -> None:
+def create_nodes_and_add_to_que(parent: Node, movie_id_for_actor_id: set) -> None:
     for movie in movie_id_for_actor_id:
         movie_id = movie[0]
         actor_id = movie[1]
         node = Node(state=actor_id, parent=parent, action=movie_id)
-        queue.add(node)
+        #TODO What if there are 2 actors with the same name
+        if any(checked_node.state == actor_id for checked_node in already_checked_nodes):
+            print("Already checked")
+        else:
+            print("Not checked")
+            queue.add(node)
+    print(len(already_checked_nodes))
 
-def check_for_target(nodes_list: list, target: int):
+
+def check_for_target_and_delete_old_nodes(nodes_list: list, target: int):
     for node in nodes_list:
         if node.state == target:
             print(f'NODE: {node.state}')
             return node
+        else:
+            already_checked_nodes.add(node)
+            # Creates new nodes from current node if node wasnt the target
+            # Deletes current node afterwards
+            movie_id_for_actor_id = neighbors_for_person(node.state)
+            create_nodes_and_add_to_que(node, movie_id_for_actor_id)
+            queue.remove()
     return False
 
 def construct_result_path(match_target_node: Node, source: int) -> list:
@@ -132,7 +146,7 @@ def construct_result_path(match_target_node: Node, source: int) -> list:
     while 1:
         print(f'RESULT PATH: {result_path}')
         if match_target_node.state != source:
-            result_path.append((match_target_node. action, match_target_node.state))
+            result_path.append((match_target_node.action, match_target_node.state))
             match_target_node = match_target_node.parent
         else:
             break
