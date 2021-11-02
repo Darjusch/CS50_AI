@@ -109,39 +109,52 @@ def shortest_path(source: int, target: int):
     if result_path != []:
         return result_path
     else:
-        print("SOMETHING SOMETHING")
+        print("No Connection")
         return None
 
             
 def create_nodes_and_add_to_que(parent: Node, movie_id_for_actor_id: set) -> None:
+    """
+    Creates Nodes and checks if the nodes were already checked before
+    Adds unchecked nodes to queue
+    """
     for movie in movie_id_for_actor_id:
         movie_id = movie[0]
         actor_id = movie[1]
         node = Node(state=actor_id, parent=parent, action=movie_id)
-        #TODO What if there are 2 actors with the same name
-        if any(checked_node.state == actor_id for checked_node in already_checked_nodes):
-            print("Already checked")
+        if any(checked_node.state == actor_id and checked_node.movie == movie_id for checked_node in already_checked_nodes):
+            print("ALREADY CHECKED")
         else:
-            print("Not checked")
             queue.add(node)
-    print(len(already_checked_nodes))
 
 
 def check_for_target_and_delete_old_nodes(nodes_list: list, target: int):
+    """
+    Checks for target node
+    Returns node if it is the target
+    If the node is not the target
+    it creates new nodes from it,
+    then removes it and adds the new nodes to que
+    Returns False if target was not found
+    """
     for node in nodes_list:
         if node.state == target:
             print(f'NODE: {node.state}')
             return node
         else:
             already_checked_nodes.add(node)
-            # Creates new nodes from current node if node wasnt the target
-            # Deletes current node afterwards
             movie_id_for_actor_id = neighbors_for_person(node.state)
             create_nodes_and_add_to_que(node, movie_id_for_actor_id)
             queue.remove()
     return False
 
 def construct_result_path(match_target_node: Node, source: int) -> list:
+    """
+    Recusivly goes through the parent of the node 
+    and adds the parent to a list 
+    till the root node which has no parent
+    Returns the list
+    """
     result_path = []
     while 1:
         print(f'RESULT PATH: {result_path}')
