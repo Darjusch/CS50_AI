@@ -13,9 +13,6 @@ people = {}
 movies = {}
 
 
-queue = QueueFrontier()
-
-
 def load_data(directory):
     """
     Load data from CSV files into memory.
@@ -88,6 +85,7 @@ def main():
             movie = movies[path[i + 1][0]]["title"]
             print(f"{i + 1}: {person1} and {person2} starred in {movie}")
 
+
 def shortest_path(source: int, target: int):
     """
     Returns the shortest list of (movie_id, person_id) pairs
@@ -96,47 +94,52 @@ def shortest_path(source: int, target: int):
     If no possible path, returns None.
     """
 
-    movie_id_for_actor_id = neighbors_for_person(source)
-    source_node = Node(state= source, parent= None, action=None)
-    create_nodes(parent=source_node, movie_id_for_actor_id=movie_id_for_actor_id)
-    match_target_node = check_for_target(queue.frontier, target)
-    if match_target_node:
-        result_path = construct_result_path(match_target_node, source)
-        if result_path:
-            return result_path
-    else:
-        print("queue.frontier: ", queue.frontier)
-        for node in queue.frontier:
-            print("NODE: ", node.state)
-            movie_id_for_actor_id2 = neighbors_for_person(node.state)
-            create_nodes(node, movie_id_for_actor_id2)
-        print("NODE LIST 2: ", len(queue.frontier))
+    # init a Stack
+    # frontier = StackFrontier()
 
-            
-def create_nodes(parent: Node, movie_id_for_actor_id: set) -> None:
-    for movie in movie_id_for_actor_id:
-        movie_id = movie[0]
-        actor_id = movie[1]
-        node = Node(state=actor_id, parent=parent, action=movie_id)
-        queue.add(node)
+    # init at Queue
+    frontier = QueueFrontier()
 
-def check_for_target(nodes_list: list, target: int):
-    for node in nodes_list:
+    # Keeps track of states exoplored
+    num_explored = 0
+
+    # Create inital state
+    start_node = Node(state=source, parent=None, action=None)
+    frontier.add(start_node)
+
+    # Aldready explored set
+    explored = set()
+
+    # Loop through nodes until soliution is found
+    while True:
+        if frontier.is_empty():
+            # raise Exception("no solution")
+            return None
+
+        node = frontier.remove()
+        num_explored += 1
+
         if node.state == target:
-            print(f'NODE: {node.state}')
-            return node
-    return False
+            movies = []
+            actors = []
 
-def construct_result_path(match_target_node: Node, source: int) -> list:
-    result_path = []
-    while 1:
-        print(f'RESULT PATH: {result_path}')
-        if match_target_node.state != source:
-            result_path.append((match_target_node. action, match_target_node.state))
-            match_target_node = match_target_node.parent
-        else:
-            break
-    return result_path
+            while node.parent is not None:
+                movies.append(node.action)
+                actors.append(node.state)
+                node = node.parent
+            movies.reverse()
+            actors.reverse()
+            solution = list(zip(movies, actors))
+            print("Solution: ", solution, "num_explored: ", num_explored)
+            return solution
+
+        explored.add(node.state)
+
+        for action, state in neighbors_for_person(node.state):
+            print("IN NEIGHBORSE", explored)
+            if not frontier.contains_state(state) and state not in explored:
+                child = Node(state=state, parent=node, action=action)
+                frontier.add(child)
 
 def person_id_for_name(name):
     """
