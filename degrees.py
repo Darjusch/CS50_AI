@@ -136,9 +136,22 @@ def shortest_path(source: int, target: int):
         explored.add(node.state)
 
         for action, state in neighbors_for_person(node.state):
-            print("IN NEIGHBORSE", explored)
+            print("EXPLORED: ", explored)
             if not frontier.contains_state(state) and state not in explored:
                 child = Node(state=state, parent=node, action=action)
+                if child.state == target:
+                    movies = []
+                    actors = []
+
+                    while node.parent is not None:
+                        movies.append(node.action)
+                        actors.append(node.state)
+                        node = node.parent
+                    movies.reverse()
+                    actors.reverse()
+                    solution = list(zip(movies, actors))
+                    print("Solution: ", solution, "num_explored: ", num_explored)
+                    return solution
                 frontier.add(child)
 
 def person_id_for_name(name):
