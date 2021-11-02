@@ -55,7 +55,7 @@ def load_data(directory):
                 pass
 
 
-def main():
+def main(name1: str, name2: str):
     if len(sys.argv) > 2:
         sys.exit("Usage: python degrees.py [directory]")
     directory = sys.argv[1] if len(sys.argv) == 2 else "large"
@@ -66,11 +66,13 @@ def main():
     print("Data loaded.")
 
     # source = person_id_for_name(input("Name: "))
-    source = person_id_for_name("Tom Cruise")
+    source = person_id_for_name(name1)
+    print(source)
     if source is None:
         sys.exit("Person not found.")
     # target = person_id_for_name(input("Name: "))
-    target = person_id_for_name("Cary Elwes")
+    target = person_id_for_name(name2)
+    print(target)
     if target is None:
         sys.exit("Person not found.")
 
@@ -122,7 +124,7 @@ def create_nodes_and_add_to_que(parent: Node, movie_id_for_actor_id: set) -> Non
         movie_id = movie[0]
         actor_id = movie[1]
         node = Node(state=actor_id, parent=parent, action=movie_id)
-        if any(checked_node.state == actor_id and checked_node.movie == movie_id for checked_node in already_checked_nodes):
+        if any(checked_node.state == actor_id and checked_node.action == movie_id for checked_node in already_checked_nodes):
             print("ALREADY CHECKED")
         else:
             queue.add(node)
@@ -205,4 +207,15 @@ def neighbors_for_person(person_id):
 
 
 if __name__ == "__main__":
-    main()
+    import random
+    test_names = []
+    with open(f"small/people.csv", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                test_names.append(row["name"])
+    random_number1 = random.randint(1, 10)
+    random_number2 = random.randint(1, 10)
+    print(test_names)
+    print(test_names[random_number1])
+    print(test_names[random_number2])
+    main(name1=test_names[random_number1], name2=test_names[random_number2])
